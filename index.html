@@ -476,14 +476,14 @@ acc.kNN.valid1 &lt;- confusionMatrix(pred.kNN.valid1,PCA.valid1$classe)$overall[
 <ul>
 <li>100% - Training;<br />
 </li>
-<li>97.9% - Validation set 1<br />
+<li>97.5% - Validation set 1<br />
 </li>
 </ul></li>
 <li>kNN accuracies:
 <ul>
 <li>98.3% - Training;<br />
 </li>
-<li>96.2% - Validation set 1</li>
+<li>95.6% - Validation set 1</li>
 </ul></li>
 </ul>
 <p>As we can see, they are very similar for both sets, suggesting that for this specific problem we can use either.</p>
@@ -511,7 +511,8 @@ data.stacked.valid2 &lt;- data.frame(rf = pred.rf.valid2,kNN = pred.kNN.valid2,c
 pred.valid2 &lt;- predict(model.stacked,data.stacked.valid2)
 
 acc.valid2 &lt;- confusionMatrix(pred.valid2,PCA.valid2$classe)$overall[c(1,3,4)]</code></pre>
-<p>Validation set 1 accuracy is 98.1% and Validation set 2, and our test accuracy estimate, is 97.1% with a 95% CI of [96.4%,97.8%]</p>
+<p>Validation set 1 accuracy is 97.6% and Validation set 2, and our test accuracy estimate, is 98% with a 95% CI of [97.4%,98.5%].</p>
+<p>Therefore, we can assume that the model’s out-of-sample error is: 2%.</p>
 </div>
 </div>
 

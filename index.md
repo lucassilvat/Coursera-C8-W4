@@ -43,20 +43,19 @@ Then, both models were stacked using Random Forest.
 
 ### Important libraries
 
-```{r,message=F,warning=F}
 
+```r
 library(caret)
 library(doParallel)
 library(fastAdaboost)
-
 ```
 
 ## Loading dataset and preparing data
 
 Calculated variables were discarded.
 
-```{r,cache=T}
 
+```r
 training <- read.csv("pml-training.csv")
 testing <- read.csv("pml-testing.csv")
 
@@ -65,14 +64,14 @@ exclude <- c(exclude,1:7)
 
 training <- training[,-exclude]
 testing <- testing[,-exclude]
-
 ```
 
 Our prepared datased has now 53 variables, including *classe*.
 
 ### Dividing and Pre-processing data
 
-```{r,cache=T}
+
+```r
 training.ind <- createDataPartition(training$classe,p=0.75,list=F)
 
 validation <- training[-training.ind,]
@@ -96,7 +95,8 @@ Here, a random forest model was trained with the training set. It is important t
 
 There is no need to apply cross-validation when training *rf* models since they are already an ensemble of many different CARTs.
 
-```{r,cache=T}
+
+```r
 ## Random Forest with Parallel computing
 
 cl <- makePSOCKcluster(4)
@@ -111,8 +111,8 @@ A kNN model is trained as well. This isn't time consuming and we will see that t
 
 Cross-validation is applied in order to reduce bias.
 
-```{r,cache=T}
 
+```r
 tr.ctrl <- trainControl(method="cv", number=10)
 cl <- makePSOCKcluster(4)
 registerDoParallel(cl)
@@ -124,7 +124,8 @@ stopCluster(cl)
 
 Accuracies on both training and validation set 1 are computed for both models.
 
-```{r,cache=T}
+
+```r
 pred.rf <- predict(model.rf,PCA.train)
 pred.kNN <- predict(model.knn,PCA.train)
 
@@ -139,11 +140,11 @@ acc.kNN.valid1 <- confusionMatrix(pred.kNN.valid1,PCA.valid1$classe)$overall[1]
 ```
 
 - Random forest accuracies:  
-  + `r format(acc.rf*100,digits=3)`% - Training;  
-  + `r format(acc.rf.valid1*100,digits=3)`% - Validation set 1  
+  + 100% - Training;  
+  + 97.5% - Validation set 1  
 - kNN accuracies:  
-  + `r format(100*acc.kNN,digits=3)`% - Training;  
-  + `r format(100*acc.kNN.valid1,digits=3)`% - Validation set 1
+  + 98.3% - Training;  
+  + 95.6% - Validation set 1
 
 As we can see, they are very similar for both sets, suggesting that for this specific problem we can use either.
 
@@ -151,8 +152,8 @@ But, to reduce bias even more, one can stack both methods using a third method. 
 
 ### Stacking models
 
-```{r,cache=T}
 
+```r
 data.stacked <- data.frame(rf = pred.rf.valid1, kNN = pred.kNN.valid1,classe=PCA.valid1$classe)
 
 cl <- makePSOCKcluster(4)
@@ -167,7 +168,8 @@ rm(cl)
 Validation set 1 is used to train the stacked model. So, it is important to compute both Validation set 1 accuracy and Validation set 2 accuracy. Since it wasn't used to train any model, the latter is used to predict the test accuracy.
 
 
-```{r,cache=T}
+
+```r
 pred.stk.valid1 <- predict(model.stacked,data.stacked)
 acc.valid1 <- confusionMatrix(pred.stk.valid1,PCA.valid1$classe)$overall[1]
 
@@ -179,12 +181,11 @@ data.stacked.valid2 <- data.frame(rf = pred.rf.valid2,kNN = pred.kNN.valid2,clas
 pred.valid2 <- predict(model.stacked,data.stacked.valid2)
 
 acc.valid2 <- confusionMatrix(pred.valid2,PCA.valid2$classe)$overall[c(1,3,4)]
-
 ```
 
-Validation set 1 accuracy is `r format(100*acc.valid1,digits=3)`% and Validation set 2, and our test accuracy estimate, is `r format(100*acc.valid2[1],digits=3)`% with a 95% CI of [`r format(100*acc.valid2[2],digits=3)`%,`r format(100*acc.valid2[3],digits=3)`%].
+Validation set 1 accuracy is 97.6% and Validation set 2, and our test accuracy estimate, is 98% with a 95% CI of [97.4%,98.5%].
 
-Therefore, we can assume that the model's out-of-sample error is: `r format(100-100*acc.valid2[1],digits=3)`%.
+Therefore, we can assume that the model's out-of-sample error is: 2%.
 
 
 
